@@ -3,10 +3,6 @@ name: appmap-analysis
 on:
   pull_request:
 
-permissions:
-  pull-requests: write
-  contents: write
-
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -39,3 +35,4 @@ jobs:
         uses: getappmap/archive-action@feat/inventory-report
         with:
           revision: ${{ github.event.pull_request.base.sha }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}

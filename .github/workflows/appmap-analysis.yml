@@ -20,16 +20,7 @@ jobs:
         uses: ruby/setup-ruby@v1
         with:
           bundler-cache: true
-      - name: Enable appmap gem update
-        run: bundle config unset deployment  
-
-      - name: Install AppMap tools
-        uses: getappmap/install-action@feat/gitignore-vendor-node-modules
-        with:
-          project-type: bundler
-      - name: Commit changes
-        uses: EndBug/add-and-commit@v9
-
+      
       - name: Rails test setup
         run: ./bin/rails db:migrate
       - name: Run tests

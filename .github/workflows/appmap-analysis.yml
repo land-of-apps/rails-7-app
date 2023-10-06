@@ -25,6 +25,7 @@ jobs:
         with:
           add: appmap.yml
           push: origin HEAD:${{ github.head_ref }}
+          pull: '--autostash'
 
       - name: Rails test setup
         run: ./bin/rails db:migrate

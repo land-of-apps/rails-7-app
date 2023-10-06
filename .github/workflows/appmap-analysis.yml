@@ -31,8 +31,19 @@ jobs:
       - name: Run tests
         run: ./bin/rails test
 
-      - name: Archive AppMaps
-        uses: getappmap/archive-action@feat/inventory-report
+      - name: Save AppMaps
+        uses: actions/cache/save@v3
+        if: always()
         with:
-          revision: ${{ github.event.pull_request.base.sha }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: ${{ steps.install-appmap.outputs.appmap-dir }}
+          key: appmaps-${{ github.sha }}-${{ github.run_attempt }}
+
+  appmap-analysis:
+    if: always()
+    needs: [test] # You may need to change this to match the name of the step that runs your tests.
+    uses: getappmap/analyze-action/.github/workflows/appmap-analysis.yml@v1
+    permissions:
+      actions: read
+      contents: read
+      checks: write
+      pull-requests: write

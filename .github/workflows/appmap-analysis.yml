@@ -2,6 +2,11 @@ name: appmap-analysis
 
 on:
   pull_request:
+  push:
+    branches:
+      - main # Change this to the name of the mainline branch
+  schedule:
+    - cron: '0 0 * * 0'
 
 jobs:
   test:
@@ -30,7 +35,19 @@ jobs:
       - name: Run tests
         run: ./bin/rails test
 
-      - name: Archive AppMaps
-        uses: getappmap/archive-action@feat/inventory-report
+      - name: Save AppMaps
+        uses: actions/cache/save@v3
+        if: always()
         with:
-          revision: ${{ github.event.pull_request.base.sha }}
+          path: tmp/appmap
+          key: appmaps-${{ github.sha }}-${{ github.run_attempt }}
+  
+  appmap-analysis:
+    if: always()
+    needs: [test] # You may need to change this to match the name of the step that runs your tests.
+    uses: getappmap/analyze-action/.github/workflows/appmap-analysis.yml@v1
+    permissions:
+      actions: read
+      contents: read
+      checks: write
+      pull-requests: write

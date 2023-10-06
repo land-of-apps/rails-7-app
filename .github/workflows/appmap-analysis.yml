@@ -15,17 +15,7 @@ jobs:
         uses: ruby/setup-ruby@v1
         with:
           bundler-cache: true
-      - name: Enable appmap gem update
-        run: bundle config unset deployment    
-      - name: Install AppMap tools
-        id: install-appmap
-        uses: getappmap/install-action@v1
-        with:
-          project-type: bundler
-          tools-url: https://github.com/getappmap/appmap-js/releases/download/%40appland%2Fappmap%40inventory-report/appmap-linux-x64
-      - name: Commit changes
-        uses: EndBug/add-and-commit@v9
-
+      
       - name: Rails test setup
         run: ./bin/rails db:migrate
       - name: Run tests

@@ -60,3 +60,13 @@ db/test.*
 
 # Vendored Ruby gems
 /vendor
+
+
+# AppMap artifacts
+/.appmap
+
+# Node modules
+/node_modules
+
+# Vendored Ruby gems
+/vendor

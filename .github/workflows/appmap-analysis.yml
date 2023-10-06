@@ -28,7 +28,6 @@ jobs:
         uses: getappmap/install-action@feat/gitignore-vendor-node-modules
         with:
           project-type: bundler
-          diff-path-spec: ". ':(exclude,top)vendor' ':(exclude,top)node_modules'"
       - name: Commit changes
         uses: EndBug/add-and-commit@v9
 

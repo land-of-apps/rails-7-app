@@ -8,6 +8,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
 
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
@@ -24,8 +26,6 @@ jobs:
         uses: EndBug/add-and-commit@v9
         with:
           add: appmap.yml
-          push: origin HEAD:${{ github.head_ref }}
-          pull: 'origin ${{ github.head_ref }} --rebase'
 
       - name: Rails test setup
         run: ./bin/rails db:migrate

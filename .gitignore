@@ -38,3 +38,7 @@
 db/test.*
 vendor
 node_modules
+
+
+# Ignore AppMap archives and working files
+/.appmap

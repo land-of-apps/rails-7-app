@@ -1,0 +1,41 @@
+name: appmap-analysis
+
+on:
+  pull_request:
+
+permissions:
+  actions: read
+  contents: write
+  checks: write
+  pull-requests: write
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          bundler-cache: true
+      
+      - name: Enable appmap gem update
+        run: bundle config unset deployment  
+      - name: Install AppMap tools
+        uses: getappmap/install-action@v1
+        with:
+          project-type: bundler
+      - name: Commit changes
+        uses: EndBug/add-and-commit@v9
+      - name: Rails test setup
+        run: ./bin/rails db:migrate
+      - name: Run tests
+        run: ./bin/rails test
+
+      - name: Archive AppMaps
+        uses: getappmap/archive-action@v1
+        with:
+          revision: ${{ github.event.pull_request.base.sha }}

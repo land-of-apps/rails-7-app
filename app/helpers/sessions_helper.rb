@@ -49,6 +49,7 @@ module SessionsHelper
   end
 
   # Logs out the current user.
+  # @label security.logout
   def log_out
     forget(current_user)
     reset_session

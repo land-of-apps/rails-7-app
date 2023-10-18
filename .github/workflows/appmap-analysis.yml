@@ -13,8 +13,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-        with:
-          ref: ${{ github.event.pull_request.head.ref }}
 
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
@@ -30,9 +28,9 @@ jobs:
         uses: actions/cache/save@v3
         if: always()
         with:
-          path: tmp/appmap
+          path: ./tmp/appmap
           key: appmaps-${{ github.sha }}-${{ github.run_attempt }}
-  
+
   appmap-analysis:
     if: always()
     needs: [test] # You may need to change this to match the name of the step that runs your tests.

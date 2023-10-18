@@ -1,0 +1,6 @@
+name: rails-7-app
+packages:
+  - path: app
+  - path: lib
+language: ruby
+appmap_dir: tmp/appmap

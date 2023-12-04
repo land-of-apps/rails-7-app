@@ -44,8 +44,10 @@ jobs:
           command: appmap archive --revision << pipeline.git.revision >>
       
       - run:
-          name: Echo event type
-          command: echo <<pipeline.trigger_parameters.circleci.event_type>>
+          name: Echo pipeline values
+          command: | 
+            echo <<pipeline.trigger_parameters.circleci.event_type>>
+            echo <<pipeline.git.base_revision>>
 
       - store_artifacts:
           path: .appmap/

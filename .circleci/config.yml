@@ -41,7 +41,11 @@ jobs:
 
       - run:
           name: Create AppMap Archive
-          command: appmap archive --revision ${CIRCLE_SHA1}
+          command: appmap archive --revision << pipeline.git.revision >>
+      
+      - run:
+          name: Echo event type
+          command: echo <<pipeline.trigger_parameters.circleci.event_type>>
 
       - store_artifacts:
           path: .appmap/

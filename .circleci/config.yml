@@ -26,7 +26,7 @@ jobs:
           command: |
             echo "Base Git SHA is ${CIRCLE_PR_BASE_SHA}"
             echo "Calculating with git merge-base"
-            BASE_SHA=$(git merge-base origin/main $CIRCLE_BRANCH)
+            echo 'export BASE_SHA=$(git merge-base origin/main $CIRCLE_BRANCH)' >> $BASH_ENV
             echo "Base SHA for PR branch: ${BASE_SHA}"
       - run:
           name: Allow AppMap Updates
@@ -56,8 +56,6 @@ jobs:
           name: Echo pipeline values
           command: | 
             echo <<pipeline.trigger_parameters.circleci.event_type>>
-
-
 
       - store_artifacts:
           path: .appmap/

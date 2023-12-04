@@ -19,6 +19,16 @@ jobs:
     steps:
       - checkout
       - ruby/install-deps
+      - run: 
+          name: Download AppMap Binaries
+          command: |
+            curl -O https://github.com/getappmap/appmap-js/releases/download/%40appland%2Fappmap-v3.112.0/appmap-linux-x64
+            chmod +x appmap-linux-x64
+            sudo mv appmap-linux-x64 /usr/local/bin/appmap
+      - run:
+          name: Install AppMap
+          command: |
+            appmap install --no-interactive --no-overwrite-appmap-config
       - run:
           name: Database setup
           command: bin/rails db:migrate

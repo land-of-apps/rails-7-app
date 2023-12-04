@@ -31,15 +31,17 @@ jobs:
             sudo mv appmap-linux-x64 /usr/local/bin/appmap
       - run:
           name: Install AppMap
-          command: |
-            appmap install --no-interactive --no-overwrite-appmap-config
+          command: appmap install --no-interactive --no-overwrite-appmap-config
       - run:
           name: Database setup
           command: bin/rails db:migrate
       - run:
           name: Run tests
           command: bin/rails test
-      
+
+      - run:
+          name: Create AppMap Archive
+          command: appmap archive --revision ${CIRCLE_SHA1}
+
       - store_artifacts:
-          path: tmp/appmap
-          destination: "appmaps-${CIRCLE_SHA1}"
+          path: .appmap/

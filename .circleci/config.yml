@@ -20,6 +20,9 @@ jobs:
     steps:
       - checkout
       - ruby/install-deps
+      - run:
+          name: Allow AppMap Updates
+          command: bundle config unset deployment
       - run: 
           name: Download AppMap Binaries
           command: |

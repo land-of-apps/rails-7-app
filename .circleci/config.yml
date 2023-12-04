@@ -1,6 +1,7 @@
 version: 2.1
 orbs:
   ruby: circleci/ruby@1.1.2
+
 workflows:
   version: 2
   build_and_test:
@@ -35,6 +36,7 @@ jobs:
       - run:
           name: Run tests
           command: bin/rails test
-      - save-artifacts:
+      
+      - store_artifacts:
           path: tmp/appmap
           destination: "appmaps-${CIRCLE_SHA1}"

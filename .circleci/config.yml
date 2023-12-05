@@ -6,13 +6,13 @@ workflows:
   version: 2
   build_mainline_archive:
     jobs:
-      - build:
+      - build_mainline_archive:
           filters:
             branches:
               only: main
   appmap_analysis:
     jobs:
-      - build:
+      - appmap_analysis:
           filters:
             branches:
               ignore: main

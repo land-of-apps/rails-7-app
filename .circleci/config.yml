@@ -110,7 +110,7 @@ jobs:
 
       - run: 
           name: Compare AppMaps
-          command: appmap compare -b $base_revision -h $head_revision
+          command: appmap compare -b $BASE_SHA -h <<pipeline.git.revision>>
 
       - run:
           name: Create AppMap Analysis Report

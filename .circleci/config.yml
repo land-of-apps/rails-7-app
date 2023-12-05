@@ -1,24 +1,16 @@
 version: 2.1
 orbs:
   ruby: circleci/ruby@1.1.2
+  aws-s3: circleci/aws-s3@4.0.0
+
 
 workflows:
-  version: 2
-  build_mainline_archive:
+  build:
     jobs:
-      - build_mainline_archive:
-          filters:
-            branches:
-              only: main
-  appmap_analysis:
-    jobs:
-      - appmap_analysis:
-          filters:
-            branches:
-              ignore: main
+      - build_appmaps
 
 jobs:
-  build_mainline_archive:
+  build_appmaps:
     docker:
       - image: cimg/ruby:3.1.2
         environment:
@@ -26,63 +18,15 @@ jobs:
           BUNDLE_RETRY: 3
           BUNDLE_PATH: vendor/bundle
           RAILS_ENV: test
+
     steps:
       - checkout
       - ruby/install-deps
 
-      - run:
-          name: Allow AppMap Updates
-          command: bundle config unset deployment
-      - run: 
-          name: Download AppMap Binaries
-          command: |
-            curl -L -O "https://github.com/getappmap/appmap-js/releases/download/%40appland%2Fappmap-v3.111.1/appmap-linux-x64"
-            chmod +x appmap-linux-x64
-            sudo mv appmap-linux-x64 /usr/local/bin/appmap
-      - run:
-          name: Install AppMap
-          command: appmap install --no-interactive --no-overwrite-appmap-config
-      - run:
-          name: Database setup
-          command: bin/rails db:migrate
-      - run:
-          name: Run tests
-          command: bin/rails test
-
-      - run:
-          name: Create AppMap Archive
-          command: appmap archive --revision <<pipeline.git.revision>>
-
-      - store_artifacts:
-          path: .appmap/
-
-  appmap_analysis:
-    docker:
-      - image: cimg/ruby:3.1.2
-        environment:
-          BUNDLE_JOBS: 4
-          BUNDLE_RETRY: 3
-          BUNDLE_PATH: vendor/bundle
-          RAILS_ENV: test
-    steps:
-      - checkout
-      - ruby/install-deps
-      
       - run:
           name: Get base Git SHA
           command: echo 'export BASE_SHA=$(git merge-base origin/main $CIRCLE_BRANCH)' >> $BASH_ENV
-      - run:
-          name: Allow AppMap Updates
-          command: bundle config unset deployment
-      - run: 
-          name: Download AppMap Binaries
-          command: |
-            curl -L -O "https://github.com/getappmap/appmap-js/releases/download/%40appland%2Fappmap-v3.111.1/appmap-linux-x64"
-            chmod +x appmap-linux-x64
-            sudo mv appmap-linux-x64 /usr/local/bin/appmap
-      - run:
-          name: Install AppMap
-          command: appmap install --no-interactive --no-overwrite-appmap-config
+
       - run:
           name: Database setup
           command: bin/rails db:migrate
@@ -91,34 +35,14 @@ jobs:
           command: bin/rails test
 
       - run:
-          name: Create AppMap Archive
-          command: appmap archive --revision <<pipeline.git.revision>>
+          name: Create archive of AppMaps
+          command: tar --remove-files -cvzf $BASE_SHA.tar tmp/appmap/
 
-      - run:
-          name: Download Mainline Archive
-          command: |
-            ARTIFACTS=$(curl -s --request GET --url https://circleci.com/api/v2/project/circleci/SkQernurq32UCixh4U1K1f/4buhqz8az2Y5hupCBZPbKH/13/artifacts --header "Circle-Token: $CIRCLE_CI_TOKEN")
-            ARTIFACT=$(echo $ARTIFACTS | jq -r 'first(.items[] | select(.path | contains("064fb651561bdd122ae98b08953800faef8ae2a5")))')
-            ARTIFACT_URL=$(echo $ARTIFACT | jq -r .url)
-            curl -L $ARTIFACT_URL -o .appmap/archive/full/064fb651561bdd122ae98b08953800faef8ae2a5.tar --header "Circle-Token: $CIRCLE_CI_TOKEN"
-
-      - run:
-          name: Restore AppMaps
-          command: |
-            appmap restore --exact -r $BASE_SHA --output-dir .appmap/change-report/$BASE_SHA-<<pipeline.git.revision>>/base
-            appmap restore --exact -r <<pipeline.git.revision>> --output-dir .appmap/change-report/$BASE_SHA-<<pipeline.git.revision>>/head 
-
-      - run: 
-          name: Compare AppMaps
-          command: appmap compare -b $BASE_SHA -h <<pipeline.git.revision>>
-
-      - run:
-          name: Create AppMap Analysis Report
-          command: appmap compare-report --source-url file://$(pwd) .appmap/change-report/$BASE_SHA-<<pipeline.git.revision>>
-
-      - run:
-          name: Tar up the change report dir
-          command: tar --remove-files -cvzf .appmap/change-report-$BASE_SHA-<<pipeline.git.revision>>.tar .appmap/change-report/
-
-      - store_artifacts:
-          path: .appmap/
+      - aws-s3/copy:
+          auth:
+            - aws-cli/setup:
+                profile_name: Circle-CI-Write-to-S3
+                role_arn: arn:aws:iam::823624377950:role/Circle-CI-Write-to-S3
+          from: <<pipeline.git.revision>>.tar
+          profile_name: Circle-CI-Write-to-S3
+          to: s3://circleci-appmaps/

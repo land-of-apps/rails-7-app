@@ -23,11 +23,7 @@ jobs:
       
       - run:
           name: Get base Git SHA
-          command: |
-            echo "Base Git SHA is ${CIRCLE_PR_BASE_SHA}"
-            echo "Calculating with git merge-base"
-            echo 'export BASE_SHA=$(git merge-base origin/main $CIRCLE_BRANCH)' >> $BASH_ENV
-            echo "Base SHA for PR branch: ${BASE_SHA}"
+          command: echo 'export BASE_SHA=$(git merge-base origin/main $CIRCLE_BRANCH)' >> $BASH_ENV
       - run:
           name: Allow AppMap Updates
           command: bundle config unset deployment
@@ -50,12 +46,6 @@ jobs:
       - run:
           name: Create AppMap Archive
           command: appmap archive --revision ${BASE_SHA}
-          #command: appmap archive --revision << pipeline.git.revision >>
-      
-      - run:
-          name: Echo pipeline values
-          command: | 
-            echo <<pipeline.trigger_parameters.circleci.event_type>>
 
       - store_artifacts:
           path: .appmap/

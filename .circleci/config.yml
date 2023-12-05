@@ -33,22 +33,14 @@ jobs:
           name: Create archive of AppMaps
           command: tar --remove-files -cvzf $BASE_SHA.tar tmp/appmap/
 
-      - run:
-          name: List tarball
-          command: |
-            ls -la
-            pwd
-            ls -la `pwd`
-            ls -la /home/circleci/project/<<pipeline.git.revision>>.tar
-
       - aws-cli/setup:
           profile_name: Circle-CI-Write-to-S3
           role_arn: arn:aws:iam::823624377950:role/Circle-CI-Write-to-S3
       
       - aws-s3/copy:
-          from: /home/circleci/project/<<pipeline.git.revision>>.tar
+          from: $BASE_SHA.tar
           profile_name: Circle-CI-Write-to-S3
-          to: s3://circleci-appmaps/<<pipeline.git.revision>>.tar
+          to: s3://circleci-appmaps/
           arguments: --region us-west-2
 
 workflows:

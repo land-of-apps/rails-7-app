@@ -37,15 +37,15 @@ jobs:
           name: list files
           command: ls -la
 
-      #- aws-cli/setup:
-      #    profile_name: Circle-CI-Write-to-S3
-      #    role_arn: arn:aws:iam::823624377950:role/Circle-CI-Write-to-S3
+      - aws-cli/setup:
+          profile_name: Circle-CI-Write-to-S3
+          role_arn: arn:aws:iam::823624377950:role/Circle-CI-Write-to-S3
       
-      #- aws-s3/copy:
-      #    from: <<pipeline.git.revision>>.tar
-      #    profile_name: Circle-CI-Write-to-S3
-      #    to: s3://circleci-appmaps/
-      #    arguments: --region us-west-2
+      - aws-s3/copy:
+          from: ./<<pipeline.git.revision>>.tar
+          profile_name: Circle-CI-Write-to-S3
+          to: s3://circleci-appmaps/
+          arguments: --region us-west-2
 
 workflows:
   build:

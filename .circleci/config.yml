@@ -97,10 +97,10 @@ jobs:
       - run:
           name: Download Mainline Archive
           command: |
-            ARTIFACTS=$(curl -s --request GET --url https://circleci.com/api/v2/project/circleci/SkQernurq32UCixh4U1K1f/4buhqz8az2Y5hupCBZPbKH/13/artifacts --header "Circle-Token: $CIRCLE_TOKEN")
+            ARTIFACTS=$(curl -s --request GET --url https://circleci.com/api/v2/project/circleci/SkQernurq32UCixh4U1K1f/4buhqz8az2Y5hupCBZPbKH/13/artifacts --header "Circle-Token: $CIRCLE_CI_TOKEN")
             ARTIFACT=$(echo $ARTIFACTS | jq -r 'first(.items[] | select(.path | contains("064fb651561bdd122ae98b08953800faef8ae2a5")))')
             ARTIFACT_URL=$(echo $ARTIFACT | jq -r .url)
-            curl -L $ARTIFACT_URL -O --header "Circle-Token: $CIRCLE_TOKEN"
+            curl -L $ARTIFACT_URL -o .appmap/archive/full/064fb651561bdd122ae98b08953800faef8ae2a5.tar --header "Circle-Token: $CIRCLE_CI_TOKEN"
 
       - run:
           name: Restore AppMaps

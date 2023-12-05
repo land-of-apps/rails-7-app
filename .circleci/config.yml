@@ -116,5 +116,9 @@ jobs:
           name: Create AppMap Analysis Report
           command: appmap compare-report --source-url file://$(pwd) .appmap/change-report/$BASE_SHA-<<pipeline.git.revision>>
 
+      - run:
+          name: Tar up the change report dir
+          command: tar --remove-files -cvzf change-report-$BASE_SHA-<<pipeline.git.revision>>.tar .appmap/change-report/
+
       - store_artifacts:
           path: .appmap/

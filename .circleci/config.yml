@@ -35,7 +35,11 @@ jobs:
 
       - run:
           name: List tarball
-          command: ls -la /home/circleci/project/<<pipeline.git.revision>>.tar
+          command: |
+            ls -la
+            pwd
+            ls -la `pwd`
+            ls -la /home/circleci/project/<<pipeline.git.revision>>.tar
 
       - aws-cli/setup:
           profile_name: Circle-CI-Write-to-S3

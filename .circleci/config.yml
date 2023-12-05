@@ -2,11 +2,7 @@ version: 2.1
 orbs:
   ruby: circleci/ruby@1.1.2
   aws-s3: circleci/aws-s3@4.0.0
-
-workflows:
-  build:
-    jobs:
-      - build
+  aws-cli: circleci/aws-cli@4.1.2
 
 jobs:
   build:
@@ -45,3 +41,8 @@ jobs:
           from: <<pipeline.git.revision>>.tar
           profile_name: Circle-CI-Write-to-S3
           to: s3://circleci-appmaps/
+
+workflows:
+  build:
+    jobs:
+      - build

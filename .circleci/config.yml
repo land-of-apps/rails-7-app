@@ -18,6 +18,8 @@ jobs:
       - checkout
       - ruby/install-deps
 
+      # Used when bootstrapping the first archive in the project
+      # May not be needed after having an initial build
       - run:
           name: Get base Git SHA
           command: echo 'export BASE_SHA=$(git merge-base origin/main $CIRCLE_BRANCH)' >> $BASH_ENV
@@ -31,14 +33,14 @@ jobs:
 
       - run:
           name: Create archive of AppMaps
-          command: tar --remove-files -cvzf $BASE_SHA.tar tmp/appmap/
+          command: tar --remove-files -cvzf <<pipeline.git.revision>>.tar tmp/appmap/
 
       - aws-cli/setup:
           profile_name: Circle-CI-Write-to-S3
           role_arn: arn:aws:iam::823624377950:role/Circle-CI-Write-to-S3
       
       - aws-s3/copy:
-          from: $BASE_SHA.tar
+          from: <<pipeline.git.revision>>.tar
           profile_name: Circle-CI-Write-to-S3
           to: s3://circleci-appmaps/
           arguments: --region us-west-2

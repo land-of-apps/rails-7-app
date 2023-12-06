@@ -1,0 +1,91 @@
+name: Analyze Maps from CircleCI
+
+on:
+  repository_dispatch:
+    types: [appmaps_archived]
+
+# AWS OIDC Related Permissions
+permissions:
+  id-token: write # This is required for requesting the JWT
+  contents: read  # This is required for actions/checkout
+  # AppMap Specific Permissions
+  actions: read
+  checks: write
+  pull-requests: write
+
+jobs:
+  download_and_archive_base_revision:
+    timeout-minutes: 30
+    env:
+      appmap_storage_bucket: circleci-appmaps
+      base_sha: ${{ github.event.pull_request.base.sha }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install AppMap tools
+        uses: getappmap/install-action@v1
+        with:
+          install-appmap-library: false
+
+      - name: Check for existing baseline archive
+        id: check_for_baseline
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        continue-on-error: true  
+        run: |
+          appmap restore --revision ${base_sha} --github-repo ${GITHUB_REPOSITORY} --exact 
+        
+      - name: configure aws credentials
+        if: steps.check_for_baseline.outcome == 'failure'
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          role-to-assume: arn:aws:iam::823624377950:role/GitHub_Read_Only_S3
+          role-session-name: GitHub_Read_Only_S3
+          aws-region: us-west-2
+
+      - name: Download and extract appmaps
+        if: steps.check_for_baseline.outcome == 'failure'
+        run: | 
+          aws s3 cp s3://${appmap_storage_bucket}/${base_sha}.tar ${base_sha}.tar 
+          tar xvf ${base_sha}.tar
+
+      - name: Archive AppMaps
+        if: steps.check_for_baseline.outcome == 'failure'
+        uses: getappmap/archive-action@v1
+        with: 
+          revision: ${base_sha}
+
+  appmap-analysis:
+    needs: [download_and_archive_base_revision]
+    runs-on: ubuntu-latest
+    env:
+      appmap_storage_bucket: circleci-appmaps
+      head_sha: ${{ github.event.pull_request.head.sha }}
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install AppMap tools
+        uses: getappmap/install-action@v1
+        with:
+          directory: .
+          install-appmap-library: false
+
+      - name: configure aws credentials
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          role-to-assume: arn:aws:iam::823624377950:role/GitHub_Read_Only_S3
+          role-session-name: GitHub_Read_Only_S3
+          aws-region: us-west-2
+
+      - name: Download and extract appmaps
+        run: | 
+          aws s3 cp s3://${appmap_storage_bucket}/${head_sha}.tar ${head_sha}.tar 
+          tar xvf ${head_sha}.tar
+    
+      - name: Analyze AppMaps
+        uses: getappmap/analyze-action@v1
+        with:
+          directory: .
+          base-revision: ${{ github.event.pull_request.base.sha }}
+          head-revision: ${{ github.event.pull_request.head.sha }}

@@ -18,12 +18,6 @@ jobs:
       - checkout
       - ruby/install-deps
 
-      # Used when bootstrapping the first archive in the project
-      # May not be needed after having an initial build
-      - run:
-          name: Get base Git SHA
-          command: echo 'export BASE_SHA=$(git merge-base origin/main $CIRCLE_BRANCH)' >> $BASH_ENV
-
       - run:
           name: Database setup
           command: bin/rails db:migrate

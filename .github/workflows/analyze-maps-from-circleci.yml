@@ -62,7 +62,6 @@ jobs:
     runs-on: ubuntu-latest
     env:
       appmap_storage_bucket: circleci-appmaps
-      base_sha: ${{ github.event.client_payload.base_sha }}
       head_sha: ${{ github.event.client_payload.head_sha }}
     steps:
       - uses: actions/checkout@v3
@@ -92,5 +91,5 @@ jobs:
         uses: getappmap/analyze-action@v1
         with:
           directory: .
-          base-revision: ${base_sha}
-          head-revision: ${head_sha}
+          base-revision: ${{ github.event.client_payload.base_sha }}
+          head-revision: ${{ github.event.client_payload.head_sha }}

@@ -96,6 +96,7 @@ jobs:
       - name: Analyze AppMaps
         uses: getappmap/analyze-action@v1
         with:
+          verbose: true
           directory: .
           base-revision: ${{ github.event.client_payload.base_sha }}
           head-revision: ${{ github.event.client_payload.head_sha }}

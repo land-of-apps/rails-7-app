@@ -19,8 +19,8 @@ jobs:
     timeout-minutes: 30
     env:
       appmap_storage_bucket: circleci-appmaps
-      base_sha: ${{ !github.event.client_payload.base_sha }}
-      head_sha: ${{ !github.event.client_payload.head_sha }}
+      base_sha: ${{ github.event.client_payload.base_sha }}
+      head_sha: ${{ github.event.client_payload.head_sha }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3

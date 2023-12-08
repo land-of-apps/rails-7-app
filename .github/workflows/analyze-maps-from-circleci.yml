@@ -3,7 +3,7 @@ name: Analyze Maps from CircleCI
 on:
   repository_dispatch:
     types:
-      - appmaps_archived
+      - run_appmap_analysis
 
 # AWS OIDC Related Permissions
 permissions:

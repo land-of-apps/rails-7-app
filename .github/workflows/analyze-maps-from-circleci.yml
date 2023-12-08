@@ -1,7 +1,9 @@
 name: Analyze Maps from CircleCI
 
 on:
-  pull_request:
+  repository_dispatch:
+    types:
+      - appmaps_archived
 
 # AWS OIDC Related Permissions
 permissions:
@@ -17,103 +19,107 @@ jobs:
     timeout-minutes: 30
     env:
       appmap_storage_bucket: circleci-appmaps
-      base_sha: ${{ github.event.pull_request.base.sha }}
+      base_sha: ${{ !github.event.client_payload.base_sha }}
+      head_sha: ${{ !github.event.client_payload.head_sha }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
 
-      - name: Install AppMap tools
-        uses: getappmap/install-action@v1
-        with:
-          install-appmap-library: false
+      - run: echo $base_sha
+      - run: echo $head_sha
 
-      - name: Check for existing baseline archive
-        id: check_for_baseline
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        continue-on-error: true  
-        run: |
-          appmap restore --revision ${base_sha} --github-repo ${GITHUB_REPOSITORY} --exact 
+  #     - name: Install AppMap tools
+  #       uses: getappmap/install-action@v1
+  #       with:
+  #         install-appmap-library: false
+
+  #     - name: Check for existing baseline archive
+  #       id: check_for_baseline
+  #       env:
+  #         GITHUB_TOKEN: ${{ github.token }}
+  #       continue-on-error: true  
+  #       run: |
+  #         appmap restore --revision ${base_sha} --github-repo ${GITHUB_REPOSITORY} --exact 
         
-      - name: configure aws credentials
-        if: steps.check_for_baseline.outcome == 'failure'
-        uses: aws-actions/configure-aws-credentials@v3
-        with:
-          role-to-assume: arn:aws:iam::823624377950:role/GitHub_Read_Only_S3
-          role-session-name: GitHub_Read_Only_S3
-          aws-region: us-west-2
+  #     - name: configure aws credentials
+  #       if: steps.check_for_baseline.outcome == 'failure'
+  #       uses: aws-actions/configure-aws-credentials@v3
+  #       with:
+  #         role-to-assume: arn:aws:iam::823624377950:role/GitHub_Read_Only_S3
+  #         role-session-name: GitHub_Read_Only_S3
+  #         aws-region: us-west-2
 
-      - name: Look for base revision AppMaps
-        if: steps.check_for_baseline.outcome == 'failure'
-        run: | 
-          set +e
-          while true; do 
-            aws s3 ls s3://circleci-appmaps/${base_sha}.tar
-            exit_status=$?
-              if [ $exit_status -eq 0 ]; then
-                echo "s3://${appmap_storage_bucket}/${base_sha}.tar exists, continuing..."
-                break
-              else
-                echo "${base_sha}.tar does not exist. Waiting 10 seconds."
-                sleep 10
-              fi
-          done
-      - name: Download and extract appmaps
-        if: steps.check_for_baseline.outcome == 'failure'
-        run: | 
-          aws s3 cp s3://${appmap_storage_bucket}/${base_sha}.tar ${base_sha}.tar 
-          tar xvf ${base_sha}.tar
-      - name: Archive AppMaps
-        if: steps.check_for_baseline.outcome == 'failure'
-        uses: getappmap/archive-action@v1
-        with: 
-          revision: ${base_sha}
+  #     - name: Look for base revision AppMaps
+  #       if: steps.check_for_baseline.outcome == 'failure'
+  #       run: | 
+  #         set +e
+  #         while true; do 
+  #           aws s3 ls s3://circleci-appmaps/${base_sha}.tar
+  #           exit_status=$?
+  #             if [ $exit_status -eq 0 ]; then
+  #               echo "s3://${appmap_storage_bucket}/${base_sha}.tar exists, continuing..."
+  #               break
+  #             else
+  #               echo "${base_sha}.tar does not exist. Waiting 10 seconds."
+  #               sleep 10
+  #             fi
+  #         done
+  #     - name: Download and extract appmaps
+  #       if: steps.check_for_baseline.outcome == 'failure'
+  #       run: | 
+  #         aws s3 cp s3://${appmap_storage_bucket}/${base_sha}.tar ${base_sha}.tar 
+  #         tar xvf ${base_sha}.tar
+  #     - name: Archive AppMaps
+  #       if: steps.check_for_baseline.outcome == 'failure'
+  #       uses: getappmap/archive-action@v1
+  #       with: 
+  #         revision: ${base_sha}
 
-  appmap-analysis:
-    needs: [download_and_archive_base_revision]
-    runs-on: ubuntu-latest
-    env:
-      appmap_storage_bucket: circleci-appmaps
-      head_sha: ${{ github.event.pull_request.head.sha }}
-    steps:
-      - uses: actions/checkout@v3
+  # appmap-analysis:
+  #   needs: [download_and_archive_base_revision]
+  #   runs-on: ubuntu-latest
+  #   env:
+  #     appmap_storage_bucket: circleci-appmaps
+  #     head_sha: ${{ github.event.pull_request.head.sha }}
+  #   steps:
+  #     - uses: actions/checkout@v3
 
-      - name: Install AppMap tools
-        uses: getappmap/install-action@v1
-        with:
-          directory: .
-          install-appmap-library: false
+  #     - name: Install AppMap tools
+  #       uses: getappmap/install-action@v1
+  #       with:
+  #         directory: .
+  #         install-appmap-library: false
 
-      - name: configure aws credentials
-        uses: aws-actions/configure-aws-credentials@v3
-        with:
-          role-to-assume: arn:aws:iam::823624377950:role/GitHub_Read_Only_S3
-          role-session-name: GitHub_Read_Only_S3
-          aws-region: us-west-2
+  #     - name: configure aws credentials
+  #       uses: aws-actions/configure-aws-credentials@v3
+  #       with:
+  #         role-to-assume: arn:aws:iam::823624377950:role/GitHub_Read_Only_S3
+  #         role-session-name: GitHub_Read_Only_S3
+  #         aws-region: us-west-2
 
-      - name: Look for head revision AppMaps
-        shell: bash
-        run: | 
-          set +e
-          while true; do 
-            aws s3 ls s3://${appmap_storage_bucket}/${head_sha}.tar
-            exit_status=$?
-              if [ $exit_status -eq 0 ]; then
-                echo "s3://${appmap_storage_bucket}/${head_sha}.tar exists, continuing..."
-                break
-              else
-                echo "${head_sha}.tar does not exist. Waiting 10 seconds."
-                sleep 10
-              fi
-          done
-      - name: Download and extract appmaps
-        run: | 
-          aws s3 cp s3://${appmap_storage_bucket}/${head_sha}.tar ${head_sha}.tar 
-          tar xvf ${head_sha}.tar
+  #     - name: Look for head revision AppMaps
+  #       shell: bash
+  #       run: | 
+  #         set +e
+  #         while true; do 
+  #           aws s3 ls s3://${appmap_storage_bucket}/${head_sha}.tar
+  #           exit_status=$?
+  #             if [ $exit_status -eq 0 ]; then
+  #               echo "s3://${appmap_storage_bucket}/${head_sha}.tar exists, continuing..."
+  #               break
+  #             else
+  #               echo "${head_sha}.tar does not exist. Waiting 10 seconds."
+  #               sleep 10
+  #             fi
+  #         done
+  #     - name: Download and extract appmaps
+  #       run: | 
+  #         aws s3 cp s3://${appmap_storage_bucket}/${head_sha}.tar ${head_sha}.tar 
+  #         tar xvf ${head_sha}.tar
     
-      - name: Analyze AppMaps
-        uses: getappmap/analyze-action@v1
-        with:
-          directory: .
-          base-revision: ${{ github.event.pull_request.base.sha }}
-          head-revision: ${{ github.event.pull_request.head.sha }}
+  #     - name: Analyze AppMaps
+  #       uses: getappmap/analyze-action@v1
+  #       with:
+  #         directory: .
+  #         base-revision: ${{ github.event.pull_request.base.sha }}
+  #         head-revision: ${{ github.event.pull_request.head.sha }}

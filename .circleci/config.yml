@@ -78,7 +78,9 @@ workflows:
     jobs:
       - build
       - run_appmap_analysis:
-           filters:
+          requires:
+            - build
+          filters:
             branches:
               ignore:
                 - main

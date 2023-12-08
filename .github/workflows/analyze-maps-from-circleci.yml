@@ -84,9 +84,6 @@ jobs:
           aws s3 cp s3://${appmap_storage_bucket}/${head_sha}.tar ${head_sha}.tar 
           tar xvf ${head_sha}.tar
 
-      - run: echo $base_sha
-      - run: echo $head_sha
-    
       - name: Analyze AppMaps
         uses: getappmap/analyze-action@v1
         with:

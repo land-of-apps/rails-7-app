@@ -24,6 +24,14 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      - name: Set commit status as pending
+        uses: myrotvorets/set-commit-status-action@f8a3f50eca0d32f3e12dc3a98792bb588bf29626
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          status: pending
+          context: AppMap Analysis
+          sha: ${{ github.event.client_payload.head_sha }}
+
       - name: Install AppMap tools
         uses: getappmap/install-action@v1
         with:
@@ -66,13 +74,6 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Set commit status as pending
-        uses: myrotvorets/set-commit-status-action@v2.0.0
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          status: pending
-          context: AppMap Analysis
-
       - name: Install AppMap tools
         uses: getappmap/install-action@v1
         with:
@@ -105,3 +106,4 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           status: ${{ job.status }}
           context: AppMap Analysis
+          sha: ${{ github.event.client_payload.head_sha }}

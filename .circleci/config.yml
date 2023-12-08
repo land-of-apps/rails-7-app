@@ -45,7 +45,7 @@ jobs:
 
       - when:
           # Only notify AppMap analysis to run when we're in a pull request
-          condition: $CIRCLE_PULL_REQUEST
+          condition: << parameters.pull-request-build >>
           steps:
             - run:
                 name: Run AppMap Analysis
@@ -70,4 +70,5 @@ jobs:
 workflows:
   build:
     jobs:
-      - build
+      - build:
+          pull-request-build: $CIRCLE_PULL_REQUEST

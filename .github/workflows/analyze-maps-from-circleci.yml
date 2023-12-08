@@ -35,7 +35,7 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
         continue-on-error: true  
         run: |
-          appmap restore --revision ${base_sha} --github-repo ${GITHUB_REPOSITORY} --exact 
+          appmap restore --check --revision ${base_sha} --github-repo ${GITHUB_REPOSITORY} --exact 
         
       - name: configure aws credentials
         if: steps.check_for_baseline.outcome == 'failure'

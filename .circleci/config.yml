@@ -76,11 +76,7 @@ jobs:
 workflows:
   build:
     jobs:
-      - build:
-          filters:
-            branches:
-              only:
-                - main
+      - build
       - run_appmap_analysis:
            filters:
             branches:

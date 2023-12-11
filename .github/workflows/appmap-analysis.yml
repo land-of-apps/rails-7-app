@@ -1,16 +1,12 @@
 name: Analyze Maps from CircleCI
 
 on:
-  repository_dispatch:
-    types:
-      # Run on webhook
-      - run_appmap_analysis
+  pull_request:
 
 # AWS OIDC Related Permissions
 permissions:
   id-token: write # This is required for requesting the JWT
   contents: read  # This is required for actions/checkout
-  statuses: write # For updating commit status
   # AppMap Specific Permissions
   actions: read
   checks: write
@@ -21,18 +17,10 @@ jobs:
     timeout-minutes: 30
     env:
       appmap_storage_bucket: circleci-appmaps
-      base_sha: ${{ github.event.client_payload.base_sha }}
+      base_sha: ${{ github.event.pull_request.base.sha }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-
-      - name: Set commit status as pending
-        uses: myrotvorets/set-commit-status-action@f8a3f50eca0d32f3e12dc3a98792bb588bf29626
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          status: pending
-          context: AppMap Analysis
-          sha: ${{ github.event.client_payload.head_sha }}
 
       - name: Install AppMap tools
         uses: getappmap/install-action@v1
@@ -55,12 +43,26 @@ jobs:
           role-session-name: GitHub_Read_Only_S3
           aws-region: us-west-2
 
+      - name: Look for base revision AppMaps
+        if: steps.check_for_baseline.outcome == 'failure'
+        run: | 
+          set +e
+          while true; do 
+            aws s3 ls s3://circleci-appmaps/${base_sha}.tar
+            exit_status=$?
+              if [ $exit_status -eq 0 ]; then
+                echo "s3://${appmap_storage_bucket}/${base_sha}.tar exists, continuing..."
+                break
+              else
+                echo "${base_sha}.tar does not exist. Waiting 10 seconds."
+                sleep 10
+              fi
+          done
       - name: Download and extract appmaps
         if: steps.check_for_baseline.outcome == 'failure'
         run: | 
           aws s3 cp s3://${appmap_storage_bucket}/${base_sha}.tar ${base_sha}.tar 
           tar xvf ${base_sha}.tar
-          
       - name: Archive AppMaps
         if: steps.check_for_baseline.outcome == 'failure'
         uses: getappmap/archive-action@v1
@@ -72,7 +74,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       appmap_storage_bucket: circleci-appmaps
-      head_sha: ${{ github.event.client_payload.head_sha }}
+      head_sha: ${{ github.event.pull_request.head.sha }}
     steps:
       - uses: actions/checkout@v3
 
@@ -89,24 +91,29 @@ jobs:
           role-session-name: GitHub_Read_Only_S3
           aws-region: us-west-2
 
+      - name: Look for head revision AppMaps
+        shell: bash
+        run: | 
+          set +e
+          while true; do 
+            aws s3 ls s3://${appmap_storage_bucket}/${head_sha}.tar
+            exit_status=$?
+              if [ $exit_status -eq 0 ]; then
+                echo "s3://${appmap_storage_bucket}/${head_sha}.tar exists, continuing..."
+                break
+              else
+                echo "${head_sha}.tar does not exist. Waiting 10 seconds."
+                sleep 10
+              fi
+          done
       - name: Download and extract appmaps
         run: | 
           aws s3 cp s3://${appmap_storage_bucket}/${head_sha}.tar ${head_sha}.tar 
           tar xvf ${head_sha}.tar
-
+    
       - name: Analyze AppMaps
         uses: getappmap/analyze-action@v1
         with:
-          verbose: true
           directory: .
-          base-revision: ${{ github.event.client_payload.base_sha }}
-          head-revision: ${{ github.event.client_payload.head_sha }}
-
-      - name: Update Commit Status
-        uses: myrotvorets/set-commit-status-action@v2.0.0
-        if: always()
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          status: ${{ job.status }}
-          context: AppMap Analysis
-          sha: ${{ github.event.client_payload.head_sha }}
+          base-revision: ${{ github.event.pull_request.base.sha }}
+          head-revision: ${{ github.event.pull_request.head.sha }}

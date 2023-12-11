@@ -47,7 +47,7 @@ jobs:
         with:
           role-to-assume: ${s3_role_name}
           role-session-name: ${s3_session_name}
-          aws-region: ${s3_region}
+          aws-region: "${s3_region}"
 
       - name: Look for base revision AppMaps
         if: steps.check_for_baseline.outcome == 'failure'

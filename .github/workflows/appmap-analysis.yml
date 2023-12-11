@@ -3,20 +3,27 @@ name: Analyze Maps from CircleCI
 on:
   pull_request:
 
-# AWS OIDC Related Permissions
+
 permissions:
+  # AWS OIDC Related Permissions
   id-token: write # This is required for requesting the JWT
-  contents: read  # This is required for actions/checkout
   # AppMap Specific Permissions
+  contents: read
   actions: read
   checks: write
   pull-requests: write
+
+env:
+  # Modify these environment variables to customize
+  s3_role_name: arn:aws:iam::823624377950:role/GitHub_Read_Only_S3
+  s3_session_name: GitHub_Read_Only_S3
+  s3_region: us-west-2
+  appmap_storage_bucket: circleci-appmaps
 
 jobs:
   download_and_archive_base_revision:
     timeout-minutes: 30
     env:
-      appmap_storage_bucket: circleci-appmaps
       base_sha: ${{ github.event.pull_request.base.sha }}
     runs-on: ubuntu-latest
     steps:
@@ -39,16 +46,16 @@ jobs:
         if: steps.check_for_baseline.outcome == 'failure'
         uses: aws-actions/configure-aws-credentials@v3
         with:
-          role-to-assume: arn:aws:iam::823624377950:role/GitHub_Read_Only_S3
-          role-session-name: GitHub_Read_Only_S3
-          aws-region: us-west-2
+          role-to-assume: ${{env.s3_role_name}}
+          role-session-name: ${{env.s3_session_name}}
+          aws-region: ${{env.s3_region}}
 
       - name: Look for base revision AppMaps
         if: steps.check_for_baseline.outcome == 'failure'
         run: | 
           set +e
           while true; do 
-            aws s3 ls s3://circleci-appmaps/${base_sha}.tar
+            aws s3 ls s3://${appmap_storage_bucket}/${base_sha}.tar
             exit_status=$?
               if [ $exit_status -eq 0 ]; then
                 echo "s3://${appmap_storage_bucket}/${base_sha}.tar exists, continuing..."
@@ -73,7 +80,6 @@ jobs:
     needs: [download_and_archive_base_revision]
     runs-on: ubuntu-latest
     env:
-      appmap_storage_bucket: circleci-appmaps
       head_sha: ${{ github.event.pull_request.head.sha }}
     steps:
       - uses: actions/checkout@v3
@@ -87,9 +93,9 @@ jobs:
       - name: configure aws credentials
         uses: aws-actions/configure-aws-credentials@v3
         with:
-          role-to-assume: arn:aws:iam::823624377950:role/GitHub_Read_Only_S3
-          role-session-name: GitHub_Read_Only_S3
-          aws-region: us-west-2
+          role-to-assume: ${{env.s3_role_name}}
+          role-session-name: ${{env.s3_session_name}}
+          aws-region: ${{env.s3_region}}
 
       - name: Look for head revision AppMaps
         shell: bash

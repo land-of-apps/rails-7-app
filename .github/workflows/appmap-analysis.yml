@@ -16,7 +16,7 @@ permissions:
 env:
   s3_role_name: arn:aws:iam::823624377950:role/GitHub_Read_Only_S3
   s3_session_name: GitHub_Read_Only_S3
-  s3_region: "us-west-2"
+  s3_region: us-west-2
   appmap_storage_bucket: circleci-appmaps
 
 jobs:

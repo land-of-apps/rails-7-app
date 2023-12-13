@@ -2,11 +2,6 @@ name: Dump GH Context
 
 on:
   pull_request:
-    branches:
-      - pc/testing-gh-actions
-  push:
-    branches:
-      - pc/testing-gh-actions
 
 jobs:
   build:

@@ -20,10 +20,10 @@ jobs:
         run: npm ci
 
       - name: Get all issues with the HEAD commit
-        run: ALLPRS=$(node searchPullRequest.js --ownerRepo=${GITHUB_REPOSITORY} --commit=${GITHUB_SHA} --full) >> "$GITHUB_ENV"
+        run: echo ALLPRS=$(node searchPullRequest.js --ownerRepo=${GITHUB_REPOSITORY} --commit=${GITHUB_SHA} --full) >> "$GITHUB_ENV"
         
       - name: Get only the most recent issue with this head commit
-        run: LATESTPR=$(node searchPullRequest.js --ownerRepo=${GITHUB_REPOSITORY} --commit=${GITHUB_SHA}) >> "$GITHUB_ENV"
+        run: echo LATESTPR=$(node searchPullRequest.js --ownerRepo=${GITHUB_REPOSITORY} --commit=${GITHUB_SHA}) >> "$GITHUB_ENV"
 
       - name: Check output
         run: | 

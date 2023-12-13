@@ -94,10 +94,14 @@ jobs:
           aws s3 cp s3://${appmap_storage_bucket}/${head_sha}.tar ${head_sha}.tar 
           tar xvf ${head_sha}.tar
 
+
+      - name: Get only the most recent issue with this head commit
+        run: echo LATESTPR=$(node searchPullRequest.js --ownerRepo=${GITHUB_REPOSITORY} --commit=${head_sha}) >> "$GITHUB_ENV"
+
       - name: Analyze AppMaps
-        uses: getappmap/analyze-action@v1
+        uses: getappmap/analyze-action@feat/add-issue-parameter
         with:
-          verbose: true
+          issue-number: ${LATESTPR}
           directory: .
           base-revision: ${{ github.event.client_payload.base_sha }}
           head-revision: ${{ github.event.client_payload.head_sha }}

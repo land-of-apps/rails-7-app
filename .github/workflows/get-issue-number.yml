@@ -1,0 +1,31 @@
+name: Get Issue Number
+
+on:
+  push:
+    branches:
+      - feat/function-to-get-pr-number
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Use Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Get all issues with the HEAD commit
+        run: echo ALLPRS=$(node searchPullRequest.js --ownerRepo=${GITHUB_REPOSITORY} --commit=${GITHUB_SHA} --full) >> "$GITHUB_ENV"
+        
+      - name: Get only the most recent issue with this head commit
+        run: echo LATESTPR=$(node searchPullRequest.js --ownerRepo=${GITHUB_REPOSITORY} --commit=${GITHUB_SHA}) >> "$GITHUB_ENV"
+
+      - name: Check output
+        run: | 
+          echo "All issues with the commit: $ALLPRS"
+          echo "Single PR number with commit: $LATESTPR"

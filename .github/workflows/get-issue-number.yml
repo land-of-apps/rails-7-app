@@ -19,20 +19,19 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Print environment variables
-        run: |
-          echo "GitHub SHA: $GITHUB_SHA"
-          echo "GitHub Repository: $GITHUB_REPOSITORY"
-
       - name: Get all issues with the HEAD commit
         id: all-issues
-        run: node searchPullRequest.js --ownerRepo=${GITHUB_REPOSITORY} --commit=${GITHUB_SHA} --full
+        run: | 
+          output=$(node searchPullRequest.js --ownerRepo=${GITHUB_REPOSITORY} --commit=${GITHUB_SHA} --full)
+          echo "::set-env name=ALLPRS::$output"
 
       - name: Get only the most recent issue with this head commit
         id: only-pr-number
-        run: node searchPullRequest.js --ownerRepo=${GITHUB_REPOSITORY} --commit=${GITHUB_SHA}
+        run: | 
+          output=$(node searchPullRequest.js --ownerRepo=${GITHUB_REPOSITORY} --commit=${GITHUB_SHA})
+          echo "::set-env name=LATESTPR::$output"
 
       - name: Check output
         run: | 
-          echo "All issues with the commit: ${{ steps.all-issues.outputs }}"
-          echo "Single PR number with commit: ${{ steps.only-pr-number.outputs }}"
+          echo "All issues with the commit: $ALLPRS"
+          echo "Single PR number with commit: $LATESTPR"

@@ -19,6 +19,11 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Print environment variables
+        run: |
+          echo "GitHub SHA: $GITHUB_SHA"
+          echo "GitHub Repository: $GITHUB_REPOSITORY"
+
       - name: Get all issues with the HEAD commit
         id: all-issues
         run: node searchPullRequest.js --ownerRepo=${GITHUB_REPOSITORY} --commit=${GITHUB_SHA} --full

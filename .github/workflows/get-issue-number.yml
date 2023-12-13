@@ -21,17 +21,19 @@ jobs:
 
       - name: Get all issues with the HEAD commit
         id: all-issues
-        run: | 
-          output=$(node searchPullRequest.js --ownerRepo=${GITHUB_REPOSITORY} --commit=${GITHUB_SHA} --full)
-          echo "::set-env name=ALLPRS::$output"
+        run: >-
+          echo "::set-output name=ALLPRS::$(
+            node searchPullRequest.js --ownerRepo=${GITHUB_REPOSITORY} --commit=${GITHUB_SHA} --full
+          )"
 
       - name: Get only the most recent issue with this head commit
-        id: only-pr-number
-        run: | 
-          output=$(node searchPullRequest.js --ownerRepo=${GITHUB_REPOSITORY} --commit=${GITHUB_SHA})
-          echo "::set-env name=LATESTPR::$output"
+        id: only-latest-pr
+        run: >-
+          echo "::set-output name=LATESTPR::$(
+            node searchPullRequest.js --ownerRepo=${GITHUB_REPOSITORY} --commit=${GITHUB_SHA}
+          )"
 
       - name: Check output
         run: | 
-          echo "All issues with the commit: $ALLPRS"
-          echo "Single PR number with commit: $LATESTPR"
+          echo "All issues with the commit: ${{ steps.all-issues.outputs.ALLPRS }}"
+          echo "Single PR number with commit: ${{ steps.only-latest-pr.outputs.LATESTPR }}"

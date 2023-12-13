@@ -109,7 +109,7 @@ jobs:
       - name: Analyze AppMaps
         uses: getappmap/analyze-action@feat/add-issue-parameter
         with:
-          issue-number: ${LATESTPR}
+          issue-number: ${{env.LATESTPR}}
           directory: .
           base-revision: ${{ github.event.client_payload.base_sha }}
           head-revision: ${{ github.event.client_payload.head_sha }}

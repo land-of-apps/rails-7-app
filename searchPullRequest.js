@@ -40,6 +40,10 @@ async function searchPullRequestWithCommit(ownerRepo, commitSha) {
 }
 
 function findMostRecent(items) {
+  if (items.length === 0) {
+    return '';
+  }
+
   return items.reduce((mostRecentItem, currentItem) => {
     const mostRecentDate = new Date(mostRecentItem.updated_at);
     const currentDate = new Date(currentItem.updated_at);
@@ -47,6 +51,7 @@ function findMostRecent(items) {
     return currentDate > mostRecentDate ? currentItem : mostRecentItem;
   }).number; 
 }
+
 
 searchPullRequestWithCommit(argv.ownerRepo, argv.commit)
   .then(items => {

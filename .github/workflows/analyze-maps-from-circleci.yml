@@ -107,7 +107,7 @@ jobs:
         run: echo LATESTPR=$(node searchPullRequest.js --ownerRepo=${GITHUB_REPOSITORY} --commit=${head_sha}) >> "$GITHUB_ENV"
 
       - name: Analyze AppMaps
-        uses: getappmap/analyze-action@feat/add-issue-parameter
+        uses: getappmap/analyze-action@v1
         with:
           issue-number: ${{env.LATESTPR}}
           directory: .

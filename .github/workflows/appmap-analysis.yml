@@ -1,7 +1,9 @@
 name: Analyze Maps from CircleCI
 
 on:
-  pull_request:
+  push:
+    branches:
+      - do_not_run
 
 
 permissions:

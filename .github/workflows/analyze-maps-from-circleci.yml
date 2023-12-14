@@ -102,7 +102,6 @@ jobs:
           aws s3 cp s3://${appmap_storage_bucket}/${head_sha}.tar ${head_sha}.tar 
           tar xvf ${head_sha}.tar
 
-
       - name: Get only the most recent issue with this head commit
         run: echo LATESTPR=$(node searchPullRequest.js --ownerRepo=${GITHUB_REPOSITORY} --commit=${head_sha}) >> "$GITHUB_ENV"
 

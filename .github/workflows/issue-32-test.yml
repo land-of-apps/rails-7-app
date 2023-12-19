@@ -1,7 +1,10 @@
 name: issue32-test
 
 on:
-  workflow_dispatch
+  push:
+    branches:
+    - issue32-test
+
 
 jobs:
   test:

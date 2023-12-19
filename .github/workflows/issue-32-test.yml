@@ -25,3 +25,19 @@ jobs:
         with:
           github-token: "invalid-token"
           install-appmap-library: false
+
+      - run: rm -v /usr/local/bin/appmap
+
+      - name: Install AppMap tools
+        uses: getappmap/install-action@v1
+        with:
+          github-token: "invalid-token"
+          install-appmap-library: false
+
+      - run: rm -v /usr/local/bin/appmap
+
+      - name: Install AppMap tools
+        uses: getappmap/install-action@v1
+        with:
+          github-token: "invalid-token"
+          install-appmap-library: false

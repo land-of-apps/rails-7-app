@@ -32,7 +32,7 @@ jobs:
           https://api.github.com/rate_limit
 
       - name: Install AppMap tools
-        uses: getappmap/install-action@v1
+        uses: getappmap/install-action@fix/pass-gh-token-to-actionutils
         with:
           install-appmap-library: false
 

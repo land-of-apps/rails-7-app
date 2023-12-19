@@ -35,6 +35,7 @@ jobs:
         uses: getappmap/install-action@fix/pass-gh-token-to-actionutils
         with:
           install-appmap-library: false
+          verbose: true
 
       - name: Check Rate Limit
         run: |

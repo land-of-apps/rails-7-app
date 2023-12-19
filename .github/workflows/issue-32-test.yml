@@ -20,6 +20,12 @@ jobs:
         uses: ruby/setup-ruby@v1
         with:
           bundler-cache: true
+
+      - name: Check Rate Limit
+        run: |
+          curl \
+            -H "Accept: application/vnd.github.v3+json" \
+            https://api.github.com/rate_limit
       - name: Install AppMap tools
         uses: getappmap/install-action@v1
         with:
@@ -41,3 +47,8 @@ jobs:
         with:
           github-token: "invalid-token"
           install-appmap-library: false
+      - name: Check Rate Limit
+        run: |
+          curl \
+            -H "Accept: application/vnd.github.v3+json" \
+            https://api.github.com/rate_limit

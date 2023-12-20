@@ -25,6 +25,11 @@ jobs:
         uses: getappmap/install-action@v1
         with:
           install-appmap-library: false
+
+      - name: Archive AppMaps
+        uses: getappmap/archive-action@v1
+        with:
+          directory: .
       
       - name: Check Rate Limit
         run: |
@@ -38,10 +43,13 @@ jobs:
           -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
           https://api.github.com/rate_limit
 
-      - name: Archive AppMaps
-        uses: getappmap/archive-action@v1
+
+      - name: Analyze AppMaps
+        uses: getappmap/analyze-action@v1
         with:
           directory: .
+          base-revision: 57580894e2d453b34ca77eb95c4e466e72375ed3
+          head-revision: 8dfc876e7eb1923f8cfaaa6df212efeea8f598b3
 
       - name: Check Rate Limit
         run: |

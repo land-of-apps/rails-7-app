@@ -1,14 +1,10 @@
 name: Analyze Maps from CircleCI
 
-# on:
-#   repository_dispatch:
-#     types:
-#       # Run on webhook
-#       - run_appmap_analysis
 on:
-  push:
-    branches:
-      - do_not_run
+  repository_dispatch:
+    types:
+      # Run on webhook
+      - run_appmap_analysis
 
 # AWS OIDC Related Permissions
 permissions:

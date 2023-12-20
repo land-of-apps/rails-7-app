@@ -46,8 +46,8 @@ jobs:
         uses: getappmap/analyze-action@v1
         with:
           directory: .
-          base-revision: 57580894e2d453b34ca77eb95c4e466e72375ed3
-          head-revision: 8dfc876e7eb1923f8cfaaa6df212efeea8f598b3
+          base-revision: ${{ github.event.pull_request.base.sha }}
+          head-revision: ${{ github.event.pull_request.head.sha }}
 
       - name: Check Rate Limit
         run: |

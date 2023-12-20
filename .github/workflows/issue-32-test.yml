@@ -34,7 +34,6 @@ jobs:
       - name: Install AppMap tools
         uses: getappmap/install-action@v1
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
           install-appmap-library: false
           verbose: true
 

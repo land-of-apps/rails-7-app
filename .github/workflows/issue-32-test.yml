@@ -34,6 +34,7 @@ jobs:
       - name: Install AppMap tools
         uses: getappmap/install-action@fix/pass-gh-token-to-actionutils
         with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           install-appmap-library: false
           verbose: true
 

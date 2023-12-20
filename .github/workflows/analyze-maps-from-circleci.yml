@@ -105,6 +105,18 @@ jobs:
       - name: Get only the most recent issue with this head commit
         run: echo LATESTPR=$(node searchPullRequest.js --ownerRepo=${GITHUB_REPOSITORY} --commit=${head_sha}) >> "$GITHUB_ENV"
 
+      - name: Check Rate Limit
+        run: |
+          curl \
+            -H "Accept: application/vnd.github.v3+json" \
+            https://api.github.com/rate_limit
+      
+      - name: Check Authenticated GitHub API Rate Limit
+        run: |
+          curl -H "Accept: application/vnd.github.v3+json" \
+          -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+          https://api.github.com/rate_limit
+      
       - name: Analyze AppMaps
         uses: getappmap/analyze-action@v1
         with:
@@ -112,6 +124,18 @@ jobs:
           directory: .
           base-revision: ${{ github.event.client_payload.base_sha }}
           head-revision: ${{ github.event.client_payload.head_sha }}
+
+      - name: Check Rate Limit
+        run: |
+          curl \
+            -H "Accept: application/vnd.github.v3+json" \
+            https://api.github.com/rate_limit
+      
+      - name: Check Authenticated GitHub API Rate Limit
+        run: |
+          curl -H "Accept: application/vnd.github.v3+json" \
+          -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+          https://api.github.com/rate_limit
 
       - name: Update Commit Status
         uses: myrotvorets/set-commit-status-action@v2.0.0

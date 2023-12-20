@@ -2,8 +2,7 @@ name: issue32-test
 
 on:
   pull_request:
-    branches:
-    - issue32-test
+  
 
 
 jobs:

@@ -1,7 +1,7 @@
 name: issue32-test
 
 on:
-  push:
+  pull_request:
     branches:
     - issue32-test
 
@@ -42,7 +42,6 @@ jobs:
           curl -H "Accept: application/vnd.github.v3+json" \
           -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
           https://api.github.com/rate_limit
-
 
       - name: Analyze AppMaps
         uses: getappmap/analyze-action@v1

@@ -3,33 +3,105 @@ name: issue32-test
 on:
   pull_request:
   
-
+# AWS OIDC Related Permissions
+permissions:
+  id-token: write # This is required for requesting the JWT
+  contents: read  # This is required for actions/checkout
+  statuses: write # For updating commit status
+  # AppMap Specific Permissions
+  actions: read
+  checks: write
+  pull-requests: write
 
 jobs:
-  test:
+  download_and_archive_base_revision:
+    timeout-minutes: 30
+    env:
+      appmap_storage_bucket: circleci-appmaps
+      base_sha: ${{ github.event.client_payload.base_sha }}
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v3
-      - name: Set up Ruby
-        uses: ruby/setup-ruby@v1
+
+      - name: Set commit status as pending
+        uses: myrotvorets/set-commit-status-action@f8a3f50eca0d32f3e12dc3a98792bb588bf29626
         with:
-          bundler-cache: true
-      - name: Rails test setup
-        run: ./bin/rails db:migrate
-      - name: Run tests
-        run: ./bin/rails test
+          token: ${{ secrets.GITHUB_TOKEN }}
+          status: pending
+          context: AppMap Analysis
+          sha: ${{ github.event.client_payload.head_sha }}
 
       - name: Install AppMap tools
         uses: getappmap/install-action@v1
         with:
           install-appmap-library: false
 
+      - name: Check for existing baseline archive
+        id: check_for_baseline
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        continue-on-error: true  
+        run: |
+          appmap restore --check --revision ${base_sha} --github-repo ${GITHUB_REPOSITORY} --exact 
+        
+      - name: configure aws credentials
+        if: steps.check_for_baseline.outcome == 'failure'
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          role-to-assume: arn:aws:iam::823624377950:role/GitHub_Read_Only_S3
+          role-session-name: GitHub_Read_Only_S3
+          aws-region: us-west-2
+
+      - name: Download and extract appmaps
+        if: steps.check_for_baseline.outcome == 'failure'
+        run: | 
+          aws s3 cp s3://${appmap_storage_bucket}/${base_sha}.tar ${base_sha}.tar 
+          tar xvf ${base_sha}.tar
+          
       - name: Archive AppMaps
+        if: steps.check_for_baseline.outcome == 'failure'
         uses: getappmap/archive-action@v1
+        with: 
+          revision: ${base_sha}
+
+  appmap-analysis:
+    needs: [download_and_archive_base_revision]
+    runs-on: ubuntu-latest
+    env:
+      appmap_storage_bucket: circleci-appmaps
+      head_sha: ${{ github.event.client_payload.head_sha }}
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install AppMap tools
+        uses: getappmap/install-action@v1
         with:
           directory: .
+          install-appmap-library: false
       
+      - name: Use Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: configure aws credentials
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          role-to-assume: arn:aws:iam::823624377950:role/GitHub_Read_Only_S3
+          role-session-name: GitHub_Read_Only_S3
+          aws-region: us-west-2
+
+      - name: Download and extract appmaps
+        run: | 
+          aws s3 cp s3://${appmap_storage_bucket}/${head_sha}.tar ${head_sha}.tar 
+          tar xvf ${head_sha}.tar
+
+      - name: Get only the most recent issue with this head commit
+        run: echo LATESTPR=$(node searchPullRequest.js --ownerRepo=${GITHUB_REPOSITORY} --commit=${head_sha}) >> "$GITHUB_ENV"
+
       - name: Check Rate Limit
         run: |
           curl \
@@ -45,9 +117,10 @@ jobs:
       - name: Analyze AppMaps
         uses: getappmap/analyze-action@v1
         with:
+          issue-number: ${{env.LATESTPR}}
           directory: .
-          base-revision: cca7f276cf7c32b4b7a5af218ccf19399084777a
-          head-revision: ${{ github.event.pull_request.head.sha }}
+          base-revision: ${{ github.event.client_payload.base_sha }}
+          head-revision: ${{ github.event.client_payload.head_sha }}
 
       - name: Check Rate Limit
         run: |
@@ -60,3 +133,13 @@ jobs:
           curl -H "Accept: application/vnd.github.v3+json" \
           -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
           https://api.github.com/rate_limit
+
+      - name: Update Commit Status
+        uses: myrotvorets/set-commit-status-action@v2.0.0
+        if: always()
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          status: ${{ job.status }}
+          context: AppMap Analysis
+          sha: ${{ github.event.client_payload.head_sha }}
+      

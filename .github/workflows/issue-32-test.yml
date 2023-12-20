@@ -10,14 +10,21 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
-    strategy:
-      fail-fast: false
-      matrix:
-        ci_node_total: [1]
-        ci_node_index: [0]
-
     steps:
       - uses: actions/checkout@v3
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          bundler-cache: true
+      - name: Rails test setup
+        run: ./bin/rails db:migrate
+      - name: Run tests
+        run: ./bin/rails test
+
+      - name: Install AppMap tools
+        uses: getappmap/install-action@v1
+        with:
+          install-appmap-library: false
       
       - name: Check Rate Limit
         run: |
@@ -31,11 +38,10 @@ jobs:
           -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
           https://api.github.com/rate_limit
 
-      - name: Install AppMap tools
-        uses: getappmap/install-action@v1
+      - name: Archive AppMaps
+        uses: getappmap/archive-action@v1
         with:
-          install-appmap-library: false
-          verbose: true
+          directory: .
 
       - name: Check Rate Limit
         run: |
